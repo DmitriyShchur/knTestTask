@@ -1,0 +1,96 @@
+import groovy.sql.Sql
+
+plugins {
+    id 'java'
+}
+
+group = 'com.shchur.dmitriy'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    hsqldb
+}
+
+dependencies {
+    hsqldb group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+
+    compile 'org.hsqldb:hsqldb:2.4.0'
+}
+
+URLClassLoader loader = GroovyObject.class.classLoader as URLClassLoader
+
+configurations.hsqldb.each {
+    File file ->
+        loader.addURL(file.toURI().toURL())
+        println "Added url: $file"
+}
+
+def executeScript (File scriptFile) {
+    def props = new Properties()
+    file("config/application.properties").withInputStream {props.load(it)}
+
+    def con = getConnection(props)
+
+    String[] scripts = scriptFile.text.split(";")
+    scripts.each {String script -> if (!script.trim().isEmpty()) con.execute(script + ";")}
+    con.close()
+}
+
+def importFromFile (File csvFile) {
+    def props = new Properties()
+    file("config/application.properties").withInputStream {props.load(it)}
+
+    def con = getConnection(props)
+
+    def people = con.dataSet("person")
+    def photosHostUrl = props.getProperty("photos.host.url")
+
+    csvFile.splitEachLine(", $photosHostUrl") {fields ->
+        if (fields[1] != null) {
+            people.add(name: fields[0], photo_url: fields[1])
+        }
+    }
+}
+
+static def getConnection (Properties props) {
+    def url = props.getProperty("datasource.url")
+    def user = props.getProperty("datasource.username")
+    def pass = props.getProperty("datasource.password")
+    def driver = props.getProperty("datasource.connector")
+
+    return Sql.newInstance(url, user, pass, driver)
+}
+
+task startHsqldbServer (type: JavaExec) {
+    classpath configurations.hsqldb
+    main = 'org.hsqldb.server.Server'
+}
+
+task createTables {
+    doLast {
+        executeScript(file('sqlscripts/create.sql'))
+    }
+}
+
+task cleanTables {
+    doLast {
+        executeScript(file('sqlscripts/clean.sql'))
+    }
+}
+
+task dropTables {
+    doLast {
+        executeScript(file('sqlscripts/drop.sql'))
+    }
+}
+
+task fillFromPeopleFile {
+    doLast {
+        importFromFile(file('people.csv'))
+    }
+}
