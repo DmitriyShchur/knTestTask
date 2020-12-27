@@ -11,6 +11,10 @@
             padding: 5px;
         }
 
+        form {
+            margin: 10px;
+        }
+
         a.active {
             font-size: 24pt;
         }
@@ -46,6 +50,11 @@
 
 <h2>Persons</h2>
 
+<form th:action="@{/listPersons}" th:object="${searchForm}" method="POST">
+    <input type="search" th:field="*{searchString}" />
+    <input type="submit"  value="Search"/>
+</form>
+
 <th:block th:each="person, iStat : ${personsPage.content}">
     <div class="person">
         <img th:src="${person.photo_url}">
@@ -57,7 +66,7 @@
     <span th:if="${personsPage.totalPages > 0}"
         th:each="pageNumber : ${pageNumbers}">
 
-    <a th:href="@{/listPersons(siz = ${personsPage.size}, page = ${pageNumber})}"
+    <a th:href="@{/listPersons(size = ${personsPage.size}, page = ${pageNumber}, searchString = ${searchString})}"
         th:text=${pageNumber}
         th:class="${pageNumber == personsPage.number + 1} ? active"></a>
     </span>

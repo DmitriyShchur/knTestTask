@@ -2,6 +2,7 @@ package com.shchur.dmitriy.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +45,30 @@ public class PersonService {
      * @return page with Person objects
      */
     public Page<PersonInfo> findPaginated(Pageable pageable) {
+        return findPaginated(Optional.empty(), pageable);
+    }
+
+    /**
+     * Return Page with Person objects according pagination information and match search string in name.
+     *
+     * @param searchString search string
+     * @param pageable pagination information
+     * @return page with Person objects
+     */
+    public Page<PersonInfo> findPaginated(String searchString, Pageable pageable) {
+        return findPaginated(Optional.of(searchString), pageable);
+    }
+
+    private Page<PersonInfo> findPaginated(Optional<String> searchString, Pageable pageable) {
         int pageSize = pageable.getPageSize();
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
 
-        int count = personRepository.count();
+        int count = personRepository.count(searchString);
 
         List<Person> list = count < startItem
                 ? Collections.emptyList()
-                : personRepository.findAll(startItem, pageSize);
+                : personRepository.findAll(searchString, startItem, pageSize);
 
         return new PageImpl<>(toPersonInfoList(list), PageRequest.of(currentPage, pageSize), count);
     }
