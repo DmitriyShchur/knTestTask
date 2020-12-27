@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.shchur.dmitriy.form.SearchForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.shchur.dmitriy.form.SearchForm;
 import com.shchur.dmitriy.model.PersonInfo;
 import com.shchur.dmitriy.service.PersonService;
 
@@ -31,9 +31,8 @@ public class MainController {
     private PersonService personService;
 
     @RequestMapping(value = "/listPersons", method = RequestMethod.GET)
-    public String listPersons(Model model,
-            @RequestParam("page") Optional<Integer> page, @RequestParam("size") Optional<Integer> size,
-            @RequestParam("searchString") Optional<String> searchString) {
+    public String listPersons(Model model, @RequestParam("page") Optional<Integer> page,
+        @RequestParam("size") Optional<Integer> size, @RequestParam("searchString") Optional<String> searchString) {
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(10);
@@ -43,31 +42,25 @@ public class MainController {
                 ? personService.findPaginated(searchStringValue, PageRequest.of(currentPage - 1, pageSize))
                 : personService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
 
-        SearchForm searchForm = new SearchForm(searchStringValue);
-
-        fillModelWithAttributes(model, searchForm, searchStringValue, personsPage);
+        SearchForm searchForm = new SearchForm(searchStringValue, pageSize);
+        fillModelWithAttributes(model, searchForm, personsPage);
         return "personsPage.html";
     }
 
     @RequestMapping(value = "/listPersons", method = RequestMethod.POST)
     public String processListPersons(Model model, SearchForm searchForm) {
-
-        int currentPage = 1;
-        int pageSize = 10;
         String searchStringValue = searchForm.getSearchString();
+        int pageSize = searchForm.getPageSize();
+        Page<PersonInfo> personsPage = personService.findPaginated(searchStringValue, PageRequest.of(0, pageSize));
 
-        Page<PersonInfo> personsPage = personService.findPaginated(searchStringValue, PageRequest.of(currentPage - 1, pageSize));
-
-        fillModelWithAttributes(model, searchForm, searchStringValue, personsPage);
+        fillModelWithAttributes(model, searchForm, personsPage);
         return "personsPage.html";
     }
 
-    private void fillModelWithAttributes(Model model, SearchForm searchForm, String searchStringValue, Page<PersonInfo> personsPage) {
+    private void fillModelWithAttributes(Model model, SearchForm searchForm, Page<PersonInfo> personsPage) {
         model.addAttribute("searchForm", searchForm);
 
         model.addAttribute("personsPage", personsPage);
-
-        model.addAttribute("searchString", searchStringValue);
 
         model.addAttribute("pageNumbers", getPageNumbers(personsPage));
     }
@@ -77,8 +70,8 @@ public class MainController {
 
         if (totalPages > 0) {
             return IntStream.rangeClosed(1, totalPages)
-                    .boxed()
-                    .collect(Collectors.toList());
+                .boxed()
+                .collect(Collectors.toList());
         }
         else {
             return Collections.emptyList();

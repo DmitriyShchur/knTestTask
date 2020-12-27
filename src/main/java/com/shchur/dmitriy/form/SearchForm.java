@@ -9,11 +9,14 @@ public class SearchForm {
 
     private String searchString;
 
+    private int pageSize;
+
     public SearchForm() {
     }
 
-    public SearchForm(String searchString) {
+    public SearchForm(String searchString, int pageSize) {
         this.searchString = searchString;
+        this.pageSize = pageSize;
     }
 
     public String getSearchString() {
@@ -22,5 +25,13 @@ public class SearchForm {
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 }

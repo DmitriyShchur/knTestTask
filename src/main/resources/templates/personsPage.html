@@ -3,7 +3,7 @@
 <head>
     <title>Person List</title>
     <style>
-        h2 {
+        h1 {
             margin: 10px;
         }
 
@@ -48,11 +48,20 @@
 
 <body>
 
-<h2>Persons</h2>
+<h1>Contact list</h1>
 
 <form th:action="@{/listPersons}" th:object="${searchForm}" method="POST">
-    <input type="search" th:field="*{searchString}" />
-    <input type="submit"  value="Search"/>
+    <label for="pageSize">Persons per page:</label>
+    <select th:field="*{pageSize}" id="pageSize">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+    </select>
+
+    <input type="search" placeholder="search by name" th:field="*{searchString}" />
+
+    <input type="submit"  value="Apply"/>
 </form>
 
 <th:block th:each="person, iStat : ${personsPage.content}">
@@ -66,7 +75,7 @@
     <span th:if="${personsPage.totalPages > 0}"
         th:each="pageNumber : ${pageNumbers}">
 
-    <a th:href="@{/listPersons(size = ${personsPage.size}, page = ${pageNumber}, searchString = ${searchString})}"
+    <a th:href="@{/listPersons(size = ${personsPage.size}, page = ${pageNumber}, searchString = ${searchForm.searchString})}"
         th:text=${pageNumber}
         th:class="${pageNumber == personsPage.number + 1} ? active"></a>
     </span>
