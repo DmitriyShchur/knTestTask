@@ -1,6 +1,8 @@
 import groovy.sql.Sql
 
 plugins {
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'java'
 }
 
@@ -12,14 +14,30 @@ repositories {
     mavenCentral()
 }
 
+sourceSets.main.resources {
+    srcDir "src/main/resources"
+    srcDir "config"
+}
+
 configurations {
     hsqldb
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
     hsqldb group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 
     compile 'org.hsqldb:hsqldb:2.4.0'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 URLClassLoader loader = GroovyObject.class.classLoader as URLClassLoader
@@ -48,11 +66,11 @@ def importFromFile (File csvFile) {
     def con = getConnection(props)
 
     def people = con.dataSet("person")
-    def photosHostUrl = props.getProperty("photos.host.url")
+    def photosHostAddress = props.getProperty("photos.host.address")
 
-    csvFile.splitEachLine(", $photosHostUrl") {fields ->
+    csvFile.splitEachLine(", $photosHostAddress") {fields ->
         if (fields[1] != null) {
-            people.add(name: fields[0], photo_url: fields[1])
+            people.add(name: fields[0], photo_path: fields[1])
         }
     }
 }

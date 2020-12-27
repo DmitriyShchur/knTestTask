@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Person List</title>
+    <style>
+        h2 {
+            margin: 10px;
+        }
+
+        th, td {
+            padding: 5px;
+        }
+
+        a.active {
+            font-size: 24pt;
+        }
+
+        .person p{
+            text-align: center;
+        }
+        .person img{
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            max-width: 128px;
+            max-height: 128px;
+        }
+        .person {
+            width: 190px;
+            height: 190px;
+            border: 1px solid black;
+            margin: 10px;
+            padding: 5px;
+            float: left;
+        }
+
+        .pagination {
+            margin: 10px;
+            clear: both;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<h2>Persons</h2>
+
+<th:block th:each="person, iStat : ${personsPage.content}">
+    <div class="person">
+        <img th:src="${person.photo_url}">
+        <p th:utext="${person.name}"></p>
+    </div>
+</th:block>
+
+<div class="pagination">
+    <span th:if="${personsPage.totalPages > 0}"
+        th:each="pageNumber : ${pageNumbers}">
+
+    <a th:href="@{/listPersons(siz = ${personsPage.size}, page = ${pageNumber})}"
+        th:text=${pageNumber}
+        th:class="${pageNumber == personsPage.number + 1} ? active"></a>
+    </span>
+</div>
+
+</body>
+</html>
