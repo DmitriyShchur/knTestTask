@@ -1,0 +1,6 @@
+CREATE TABLE person (
+	id BIGINT AUTO_INCREMENT,
+	name VARCHAR(255) NOT NULL,
+	photo_path VARCHAR(900) NOT NULL,
+	CONSTRAINT person_pk PRIMARY KEY (id)
+);

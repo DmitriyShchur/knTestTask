@@ -12,6 +12,10 @@ sourceCompatibility = '1.8'
 
 repositories {
     mavenCentral()
+    //This repository added to get oracle db driver in test mode.
+    maven {
+        url "http://nexus.saas.hand-china.com/content/repositories/rdc/"
+    }
 }
 
 sourceSets.main.resources {
@@ -21,6 +25,9 @@ sourceSets.main.resources {
 
 configurations {
     hsqldb
+    mysql
+    postgre
+    oracle
 }
 
 dependencies {
@@ -32,26 +39,51 @@ dependencies {
     }
 
     hsqldb group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+    mysql group: 'mysql', name: 'mysql-connector-java', version: '8.0.18'
+    postgre group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+    oracle group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 
-    compile 'org.hsqldb:hsqldb:2.4.0'
+    compile configurations.hsqldb
+    compile configurations.mysql
+    compile configurations.postgre
+    compile configurations.oracle
 }
 
 test {
     useJUnitPlatform()
 }
 
+
 URLClassLoader loader = GroovyObject.class.classLoader as URLClassLoader
 
-configurations.hsqldb.each {
+def props = new Properties()
+file("config/application.properties").withInputStream {props.load(it)}
+
+def configuration
+switch(props.getProperty("gradle.datasource.name")) {
+    case "mysql":
+        configuration = configurations.mysql
+        break
+    case "postgre":
+        configuration = configurations.postgre
+        break
+    case "oracle":
+        configuration = configurations.oracle
+        break
+    case "hsqldb":
+        configuration = configurations.hsqldb
+        break
+    default:
+        println "Not supported database name"
+}
+configuration.each {
     File file ->
         loader.addURL(file.toURI().toURL())
         println "Added url: $file"
 }
 
-def executeScript (File scriptFile) {
-    def props = new Properties()
-    file("config/application.properties").withInputStream {props.load(it)}
 
+def executeScript (Properties props, File scriptFile) {
     def con = getConnection(props)
 
     String[] scripts = scriptFile.text.split(";")
@@ -59,10 +91,7 @@ def executeScript (File scriptFile) {
     con.close()
 }
 
-def importFromFile (File csvFile) {
-    def props = new Properties()
-    file("config/application.properties").withInputStream {props.load(it)}
-
+def importFromFile (Properties props, File csvFile) {
     def con = getConnection(props)
 
     def people = con.dataSet("person")
@@ -84,6 +113,7 @@ static def getConnection (Properties props) {
     return Sql.newInstance(url, user, pass, driver)
 }
 
+
 task startHsqldbServer (type: JavaExec) {
     classpath configurations.hsqldb
     main = 'org.hsqldb.server.Server'
@@ -91,24 +121,26 @@ task startHsqldbServer (type: JavaExec) {
 
 task createTables {
     doLast {
-        executeScript(file('sqlscripts/create.sql'))
+        def datasource_name = props.getProperty("gradle.datasource.name")
+        def file_name = "sqlscripts/${datasource_name}create.sql"
+        executeScript(props, file(file_name))
     }
 }
 
 task cleanTables {
     doLast {
-        executeScript(file('sqlscripts/clean.sql'))
+        executeScript(props, file('sqlscripts/clean.sql'))
     }
 }
 
 task dropTables {
     doLast {
-        executeScript(file('sqlscripts/drop.sql'))
+        executeScript(props, file('sqlscripts/drop.sql'))
     }
 }
 
 task fillFromPeopleFile {
     doLast {
-        importFromFile(file('people.csv'))
+        importFromFile(props, file('people.csv'))
     }
 }

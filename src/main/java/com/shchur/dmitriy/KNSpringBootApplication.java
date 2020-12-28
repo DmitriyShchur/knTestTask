@@ -59,6 +59,9 @@ public class KNSpringBootApplication {
         properties.put("current_session_context_class",
                 env.getProperty("spring.jpa.properties.hibernate.current_session_context_class"));
 
+        // this parameter used to fix error: Method org.postgresql.jdbc.PgConnection.createClob() is not yet implemented
+        properties.put("hibernate.temp.use_jdbc_metadata_defaults", false);
+
         LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
         factoryBean.setPackagesToScan(Person.class.getPackage().getName());
         factoryBean.setDataSource(dataSource);
