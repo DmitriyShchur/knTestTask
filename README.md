@@ -94,3 +94,4 @@ Run the following command in this repo to fill a people table with people.csv da
 ```bash
 ./gradlew bootRun
 ```
+6.You can find launched application by the address http://localhost:8080
