@@ -6,6 +6,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +31,8 @@ import com.shchur.dmitriy.service.PersonService;
  */
 @Controller
 public class MainController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainController.class);
 
     @Autowired
     private PersonService personService;
@@ -63,7 +70,13 @@ public class MainController {
     }
 
     @RequestMapping(value = "/error", method = RequestMethod.GET)
-    public String errorPage() {
+    public String errorPage(HttpServletRequest request) {
+        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+
+        LOGGER.warn(status != null
+                ? "User was redirected to error page with status code " + status
+                : "User was redirected to error page");
+
         return "error.html";
     }
 
