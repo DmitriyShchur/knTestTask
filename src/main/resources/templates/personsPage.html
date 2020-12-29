@@ -23,19 +23,30 @@
             text-align: center;
         }
         .person img{
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-            max-width: 128px;
-            max-height: 128px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
         }
         .person {
             width: 190px;
             height: 190px;
-            border: 1px solid black;
+            border: 1px solid rgb(180,180,180);
+            border-radius: 5px;
             margin: 10px;
             padding: 5px;
             float: left;
+        }
+
+        .photo_frame {
+            width: 190px;
+            height: 140px;
+            position: relative;
         }
 
         .pagination {
@@ -66,7 +77,9 @@
 
 <th:block th:each="person, iStat : ${personsPage.content}">
     <div class="person">
-        <img th:src="${person.photo_url}">
+        <div class="photo_frame">
+            <img th:src="${person.photo_url}">
+        </div>
         <p th:utext="${person.name}"></p>
     </div>
 </th:block>
