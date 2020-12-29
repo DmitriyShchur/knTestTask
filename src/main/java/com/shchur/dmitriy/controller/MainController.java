@@ -30,6 +30,11 @@ public class MainController {
     @Autowired
     private PersonService personService;
 
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public String helloPage() {
+        return "helloPage.html";
+    }
+
     @RequestMapping(value = "/listPersons", method = RequestMethod.GET)
     public String listPersons(Model model, @RequestParam("page") Optional<Integer> page,
         @RequestParam("size") Optional<Integer> size, @RequestParam("searchString") Optional<String> searchString) {
@@ -55,6 +60,11 @@ public class MainController {
 
         fillModelWithAttributes(model, searchForm, personsPage);
         return "personsPage.html";
+    }
+
+    @RequestMapping(value = "/error", method = RequestMethod.GET)
+    public String errorPage() {
+        return "error.html";
     }
 
     private void fillModelWithAttributes(Model model, SearchForm searchForm, Page<PersonInfo> personsPage) {
